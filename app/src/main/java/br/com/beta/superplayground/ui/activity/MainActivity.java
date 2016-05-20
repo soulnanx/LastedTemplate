@@ -14,19 +14,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import br.com.beta.superplayground.R;
-import butterknife.Bind;
+import butterknife.BindView;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    @Bind(value = R.id.drawer_layout)
+    @BindView(value = R.id.drawer_layout)
     DrawerLayout drawer;
 
-    @Bind(value = R.id.toolbar)
-    private Toolbar toolbar;
+    @BindView(value = R.id.toolbar)
+    Toolbar toolbar;
 
-    @Bind(value = R.id.nav_view)
-    private NavigationView navigationView;
+    @BindView(value = R.id.nav_view)
+    NavigationView navigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -2,7 +2,6 @@ package br.com.beta.superplayground.ui.fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -22,28 +21,26 @@ import java.util.List;
 import br.com.beta.superplayground.R;
 import br.com.beta.superplayground.adapter.RepositoriesAdapter;
 import br.com.beta.superplayground.entity.Repository;
-import br.com.beta.superplayground.rest.GitHubService;
-import br.com.beta.superplayground.rest.ServiceGenerator;
-import butterknife.Bind;
+import br.com.beta.superplayground.http.client.GithubClient;
+import butterknife.BindView;
 import butterknife.ButterKnife;
-import retrofit.Callback;
-import retrofit.RetrofitError;
-import retrofit.client.Response;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-public class ExampleFragment extends Fragment implements SearchView.OnQueryTextListener {
+public class ExampleFragment extends Fragment {
 
     private View view;
 
-    @Bind(value = R.id.recycler_view)
+    @BindView(value = R.id.recycler_view)
     RecyclerView recyclerView;
 
-    @Bind(value = R.id.swipe_refresh_layout)
+    @BindView(value = R.id.swipe_refresh_layout)
     SwipeRefreshLayout swipeRefreshLayout;
 
     private List<Repository> repositories;
     private RepositoriesAdapter adapter;
     private RecyclerView.LayoutManager layoutManager;
-    private List<Repository> filteredRepositoryList;
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -76,11 +73,6 @@ public class ExampleFragment extends Fragment implements SearchView.OnQueryTextL
 
     private void loadValues() {
         repositories = new ArrayList<>();
-
-        if (adapter != null) {
-            adapter.clear();
-        }
-
         callService();
     }
 
@@ -102,35 +94,15 @@ public class ExampleFragment extends Fragment implements SearchView.OnQueryTextL
     }
 
     private void callService() {
-        GitHubService service = ServiceGenerator.generate(GitHubService.class);
-        service.listAllRepositoryByUser("soulnanx", new Callback<List<Repository>>() {
+        new GithubClient().getRepositories("soulnanx", new Callback<List<Repository>>() {
             @Override
-            public void success(List<Repository> modelListFromService, Response response) {
-                swipeRefreshLayout.setRefreshing(false);
-                repositories.addAll(modelListFromService);
+            public void onResponse(Call<List<Repository>> call, Response<List<Repository>> response) {
 
-                if (repositories.isEmpty()) {
-                    showEmptyResult();
-                } else if (!repositories.isEmpty()) {
-                    loadMoreItems(modelListFromService);
-                }
             }
 
             @Override
-            public void failure(RetrofitError error) {
-                swipeRefreshLayout.setRefreshing(false);
+            public void onFailure(Call<List<Repository>> call, Throwable t) {
 
-                int message;
-                if (error.getKind().equals(RetrofitError.Kind.NETWORK)) {
-                    message = R.string.internet_error;
-
-                } else {
-                    message = R.string.internal_error;
-                }
-                Snackbar.make(
-                        view.findViewById(R.id.root),
-                        getString(message) + " " + error.getMessage(),
-                        Snackbar.LENGTH_LONG).setAction(R.string.try_again, onClickTryAgain()).show();
             }
         });
     }
@@ -143,51 +115,5 @@ public class ExampleFragment extends Fragment implements SearchView.OnQueryTextL
             }
         };
     }
-
-    private void loadMoreItems(List<Repository> modelListFromService) {
-        for (Repository model : modelListFromService) {
-            adapter.addData(model);
-        }
-    }
-
-    private void showEmptyResult() {
-
-    }
-
-    private List<Repository> filter(List<Repository> modelList, String query) {
-        query = query.toLowerCase();
-        final List<Repository> modelFilteredList = new ArrayList<>();
-        for (Repository model : modelList) {
-            final String text = model.getFullName().toLowerCase();
-            if (text.contains(query)) {
-                filteredRepositoryList.add(model);
-            }
-        }
-
-        return filteredRepositoryList;
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_filter, menu);
-
-        final MenuItem item = menu.findItem(R.id.action_search);
-        final android.support.v7.widget.SearchView searchView = (android.support.v7.widget.SearchView) MenuItemCompat.getActionView(item);
-        searchView.setOnQueryTextListener(this);
-    }
-
-    @Override
-    public boolean onQueryTextSubmit(String s) {
-        return false;
-    }
-
-    @Override
-    public boolean onQueryTextChange(String query) {
-        final List<Repository> filteredRepositoryList = filter(repositories, query);
-        adapter.animateTo(filteredRepositoryList);
-        recyclerView.scrollToPosition(0);
-        return true;
-    }
-
 
 }

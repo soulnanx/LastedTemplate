@@ -11,7 +11,7 @@ import java.util.List;
 
 import br.com.beta.superplayground.R;
 import br.com.beta.superplayground.entity.Repository;
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
@@ -114,10 +114,10 @@ public class RepositoriesAdapter extends RecyclerView.Adapter<RepositoriesAdapte
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        @Bind(value = R.id.item_repository_title)
+        @BindView(value = R.id.item_repository_title)
         TextView name;
 
-        @Bind(value = R.id.item_repository_full_name)
+        @BindView(value = R.id.item_repository_full_name)
         TextView fullName;
 
         public ViewHolder(View itemView) {
